@@ -64,7 +64,7 @@ SmartCVSystem/
 │   ├── urls.py
 │   └── wsgi.py
 ├── apps/
-│   ├── authx/               # Authentication & Authorization
+│   ├── authx/               # use loginModule instead 
 │   │   ├── migrations/
 │   │   ├── models.py
 │   │   ├── views.py
@@ -109,7 +109,7 @@ SmartCVSystem/
 └── static/                  # Global static assets
 
 
-python manage.py startapp authx apps/authx
+python manage.py startapp authx apps/loginModule
 python manage.py startapp profiles apps/profiles
 python manage.py startapp resumes    apps/resumes
 python manage.py startapp repository apps/repository

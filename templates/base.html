@@ -35,19 +35,19 @@
               <a class="nav-link" href="{% url 'profiles:detail' %}">Profile</a> 
             </li>
             <li class="nav-item">
-              <a class="btn btn-link" href="{% url 'authx:logout' %}">Logout</a>
+              <a class="btn btn-link" href="{% url 'loginModule:logout' %}">Logout</a>
             </li>
           {% else %}
             {# don't show Login when already on login page #}
             {% if request.resolver_match.url_name != 'login' %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'authx:login' %}">Login</a>
+                <a class="nav-link" href="{% url 'loginModule:loginPage' %}">Login</a>
               </li>
             {% endif %}
             {# don't show Register when already on register page #}
             {% if request.resolver_match.url_name != 'register' %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'authx:register' %}">Register</a>
+                <a class="nav-link" href="{% url 'loginModule:registerPage' %}">Register</a>
               </li>
             {% endif %}
           {% endif %}
