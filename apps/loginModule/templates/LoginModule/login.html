@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Transaction System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/material-design-iconic-font.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/util.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/css.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styleMain.css' %}"/>
+</head>
+<body>
+
+
+<!-- App Header -->
+<div class="appHeader no-border transparent position-absolute">
+    <div class="pageTitle"></div>
+    <div class="right">
+    </div>
+</div>
+<!-- * App Header -->
+
+<!-- App Capsule -->
+<div id="appCapsule" style="max-width: 500px; border-radius: 10px; width: 95%; background-color: white; position: relative;margin: 4% auto auto;height: auto !important;
+    top: 5%;">
+
+    <div class="section mt-2 text-center">
+
+        <h1 style="margin-bottom: 30px;">LOGIN</h1>
+
+    </div>
+    <div class="section mb-5 p-2" style="background-color: white; border-radius: 10px">
+
+        <form class="login100-form validate-form" method="post" id="ctUp">
+            {% csrf_token %}
+            <div class="wrap-input100 validate-input m-b-23" data-validate="please input your account">
+                <span class="label-input100">Account</span>
+                <input class="input100" type="email" name="A_name" id="username" placeholder="please input your account"
+                       maxlength="40" required autofocus>
+                <span class="focus-input100" data-symbol="&#xf206;"></span>
+            </div>
+
+            <div class="wrap-input100 validate-input" data-validate="please input your password">
+                <span class="label-input100">Password</span>
+                <input class="input100" type="password" name="A_pwd" placeholder="please input your password"
+                       maxlength="20" required>
+                <span class="focus-input100" data-symbol="&#xf190;"></span>
+            </div>
+
+            <div class="form-links mt-2">
+                <div>
+                    <a href="{% url 'loginModule:registerPage' %}">SIGN IN</a>
+
+                </div>
+                <div><a href="{% url 'loginModule:forgotPassword' %}" class="text-muted">Forget Password?</a></div>
+            </div>
+
+            <div class="form-check" style="float: right">
+                <input type="checkbox" class="form-check-input" id="inlineCheckbox1" checked>
+                <label class="form-check-label" for="inlineCheckbox1">
+                    Here are <a href="#" data-bs-toggle="modal" data-bs-target="#ModalBasic">Our group members</a>
+                </label>
+            </div>
+
+            <div style="margin-top: 15%;margin-bottom: 5%;">
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit">Login</button>
+
+            </div>
+
+
+        </form>
+    </div>
+
+
+    <!--模态框内容 -->
+    {#    modal fade panelbox panelbox-left#}
+    {#    modal fade modalbox#}
+    <div class="modal fade panelbox panelbox-right" id="ModalBasic" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Introduction of our group</h5>
+                    <a href="#" data-bs-dismiss="modal">Close</a>
+                </div>
+                <div class="modal-body">
+
+                    <p>
+                        Members:
+                    <p>Chen Xu</p>
+                    <p>Arasu</p>
+                    <p>Huang Bangning</p>
+                    <p>Stalin Yuri</p>
+                    <p>Zatil Imani</p>
+                    <p>Redh</p>
+                    </p>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- * Modal Basic -->
+
+</div>
+<!-- * App Capsule -->
+
+</body>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script type="text/javascript">
+
+    function sub() {
+        let email = $("input[name='A_name']").val();
+        let password = $("input[name='A_pwd']").val();
+        let csrfToken = $("input[name='csrfmiddlewaretoken']").val();
+
+        $.ajax({
+            url: "/auth/loginCheck/",
+            type: "POST",
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            data: {
+                A_name: email,
+                A_pwd: password
+            },
+            success: function (response) {
+                if (response.status === "success") {
+                    window.location.href = "/dashboard/";
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function (xhr) {
+                alert("Login failed: " + xhr.responseText);
+            }
+        });
+    }
+
+    $(function () {
+        if (navigator.userAgent.match(/mobile/i)) {
+            // detect if mobile use or not
+        } else {
+            // non-mobile
+        }
+
+        $("#btn-submit").on("click", function (e) {
+            e.preventDefault();
+            if (!$("#inlineCheckbox1").is(":checked")) {
+                alert("Hello, please check the box and make sure you have read the members. HAHA");
+                return false;
+            } else {
+                sub();
+            }
+        });
+    });
+
+</script>
+
+</html>

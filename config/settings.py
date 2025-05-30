@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import environ
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
     "apps.common",  
     "apps.authx.apps.AuthxConfig",
     "apps.profiles.apps.ProfilesConfig",
+    "apps.loginModule",
 ]
 
 MIDDLEWARE = [
@@ -99,9 +102,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "smartcv",
+        "NAME": "sysProject",
         "USER": "root",
-        "PASSWORD": "Rasu1991",
+        "PASSWORD": "12345678",
         "HOST": "127.0.0.1",
         "PORT": "3306",
         "OPTIONS": {
@@ -156,8 +159,37 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    # 这样子配置就可以在多个app下分别使用不同的静态文件了
+    BASE_DIR / 'apps' / 'loginModule' / 'static',
+    # BASE_DIR / 'app1' / 'static',
+    # BASE_DIR / 'app2' / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 发送 QQ 邮件配置项
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 25
+
+EMAIL_HOST_USER = 'cx742296960@gmail.com'
+
+EMAIL_HOST_PASSWORD = 'yjdpbosjoponsfks'
+EMAIL_USE_TLS = True  # 这里必须是 True，否则发送不成功
+# EMAIL_FROM = 'xxx@qq.com' # 你的 QQ 账号
+EMAIL_FROM = 'cx742296960@gmail.com'  # 收件人看到的发件人
+
+# Redis Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://default:gfT2LkWYyZf6zQZucF2VQmmOCIQRZQmT@redis-18317.c14.us-east-1-2.ec2.redns.redis-cloud.com:18317",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

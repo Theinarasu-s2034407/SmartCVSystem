@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path ("dashboard/",dashboard, name="dashboard"),
     path("", landing, name="landing"),
-    path("auth/", include("apps.authx.urls", namespace="authx")),
+    # path("auth/", include("apps.authx.urls", namespace="authx")),
+    path("auth/", include("apps.loginModule.urls", namespace="loginModule")),
+
     path("profiles/", include("apps.profiles.urls", namespace="profiles")),
 ]
