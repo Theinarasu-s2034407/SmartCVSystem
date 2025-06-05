@@ -10,47 +10,47 @@ A Django-powered candidate–job matching platform using MySQL. It parses digita
 
 ## 🛠️ Tech Stack
 
-| Layer / Concern   | Technology |
-|-------------------|------------|
-| **Framework**     | Django 4 (on Python 3.8 +) |
-| **Database**      | MySQL 8 |
+| Layer / Concern   | Technology                                            |
+| ----------------- | ----------------------------------------------------- |
+| **Framework**     | Django 4 (on Python 3.8 +)                            |
+| **Database**      | MySQL 8                                               |
 | **File Storage**  | Amazon S3 (object storage for uploaded CVs & reports) |
-| **Cloud Hosting** | AWS (e.g., Elastic Beanstalk / EC2 / ECS) |
-| **CI / VCS**      | Git & GitHub |
-
+| **Cloud Hosting** | AWS (e.g., Elastic Beanstalk / EC2 / ECS)             |
+| **CI / VCS**      | Git & GitHub                                          |
 
 ---
 
 ## 🚀 Features
 
 1. **Resume Parsing**  
-   Automatically extracts skills, experience, and education from uploaded CVs.  
+   Automatically extracts skills, experience, and education from uploaded CVs.
 2. **Candidate–Role Matching**  
-   Algorithmic matching based on keyword analysis and weightings.  
+   Algorithmic matching based on keyword analysis and weightings.
 3. **Secure Data Storage**  
-   All applicant and match data encrypted at rest in MySQL.  
+   All applicant and match data encrypted at rest in MySQL.
 4. **Fit Reports**  
-   Simple downloadable summaries of match scores.  
+   Simple downloadable summaries of match scores.
 
 ---
 
 ## 📥 Prerequisites
 
-- Python 3.8+  
-- MySQL server (local or remote)  
-- `virtualenv` or `venv`  
+- Python 3.8+
+- MySQL server (local or remote)
+- `virtualenv` or `venv`
 
 ---
 
 ## ⚙️ Installation & Setup
 
-1. **Clone the repo**  
+1. **Clone the repo**
    ```bash
    git clone https://github.com/your-username/SmartCVSystem.git
    cd SmartCVSystem
-
+   ```
 
 ## 📂 Suggested Django Project Layout
+
 _Each top-level package maps directly to the functional modules in your design._
 
 ```text
@@ -154,7 +154,36 @@ python manage.py createsuperuser
 
 # 8. Run the dev server
 python manage.py runserver
+```
 
+## 🐳 Running with Docker
 
+1. **Build and start the containers**
 
+   ```bash
+   docker compose up --build
+   ```
 
+2. **Apply migrations and create a superuser**
+   Open a new terminal and run:
+
+   ```bash
+   # if you have any new models
+   docker compose exec web python manage.py makemigrations <model_name>
+   docker compose exec web python manage.py migrate
+   docker compose exec web python manage.py createsuperuser
+   ```
+
+3. **Access the app**
+
+   - The web app will be available at [http://localhost:8000](http://localhost:8000)
+   - The Django admin at [http://localhost:8000/admin](http://localhost:8000/admin)
+
+4. **Stopping the containers**
+   Press `Ctrl+C` in the terminal running Docker Compose, or run:
+   ```bash
+   docker compose down
+   ```
+
+**Note:**
+Make sure your `.env` file is configured with the correct database and AWS credentials before starting the containers.
