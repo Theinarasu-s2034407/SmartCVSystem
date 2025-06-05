@@ -1,4 +1,5 @@
 from django.db import models
+from apps.jobposts.models import JobPost  # Assuming you have a JobPost model in jobposts app
 
 # Create your models here.
 class Candidate(models.Model):
@@ -16,7 +17,7 @@ class Candidate(models.Model):
 class Application(models.Model):
     id = models.AutoField(primary_key=True)
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='applications')
-    job_title = models.CharField(max_length=255) # TODO: Add a foreign key to a Job model if needed
+    job = models.ForeignKey(JobPost, on_delete=models.CASCADE, related_name='applications')  # Assuming a Job model exists
     company_name = models.CharField(max_length=255)
     application_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=[
