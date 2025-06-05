@@ -27,3 +27,12 @@ class Application(models.Model):
         ('rejected', 'Rejected')
     ], default='applied')
     resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)  # Assuming resumes are uploaded as files
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=255, blank=True, null=True)  # Assuming this is a username
+
+class CVExtraction(models.Model):
+    id = models.AutoField(primary_key=True)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='cv_extractions')
+    extracted_data = models.JSONField()  # Assuming you store extracted data as JSON
+    created_at = models.DateTimeField(auto_now_add=True)

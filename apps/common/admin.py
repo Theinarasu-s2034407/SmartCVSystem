@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from apps.authx.models    import User, Role, Permission, RolePermission
-from apps.resumes.models import Candidate, Application
+from apps.resumes.models import Candidate, Application, CVExtraction
 from apps.jobposts.models import JobPost
 
 
@@ -13,3 +13,4 @@ admin.site.register(RolePermission)
 admin.site.register(Candidate)
 admin.site.register(Application)
 admin.site.register(JobPost)
+admin.site.register(CVExtraction)
