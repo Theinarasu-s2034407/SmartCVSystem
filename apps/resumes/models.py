@@ -1,0 +1,28 @@
+from django.db import models
+
+# Create your models here.
+class Candidate(models.Model):
+    id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    linkedin_profile = models.URLField(max_length=255, blank=True, null=True)
+    nationality = models.CharField(max_length=100, blank=True, null=True)
+    notice_period = models.CharField(max_length=50, blank=True, null=True)
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Application(models.Model):
+    id = models.AutoField(primary_key=True)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='applications')
+    job_title = models.CharField(max_length=255) # TODO: Add a foreign key to a Job model if needed
+    company_name = models.CharField(max_length=255)
+    application_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, choices=[
+        ('applied', 'Applied'),
+        ('interviewed', 'Interviewed'),
+        ('offered', 'Offered'),
+        ('rejected', 'Rejected')
+    ], default='applied')
+    resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)  # Assuming resumes are uploaded as files
