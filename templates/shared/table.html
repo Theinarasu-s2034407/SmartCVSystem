@@ -1,0 +1,36 @@
+{% load shared_extras %}
+<table class="table-responsive table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      {% for col in columns %}
+      <th scope="col">{{ col.label }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in data %}
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      {% for col in columns %} {% if col.type == "action" %}
+      <td>
+        {% for action in col.actions %}
+        <a
+          href=""
+          class="btn btn-sm {{ action.class|default:'btn-primary' }}"
+        >
+          {{ action.label }}
+        </a>
+        {% endfor %}
+      </td>
+      {% else %}
+      <td>{{ row|get_item:col.key }}</td>
+      {% endif %} {% endfor %}
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="{{ columns|length|add:'1' }}">No data available.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
