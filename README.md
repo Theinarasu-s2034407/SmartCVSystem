@@ -165,7 +165,7 @@ python manage.py runserver
    ```
 
 2. **Apply migrations and create a superuser**
-   Open a new terminal and run:
+   <p>Open a new terminal and run:</p>
 
    ```bash
    # if you have any new models
@@ -180,12 +180,13 @@ python manage.py runserver
    - The Django admin at [http://localhost:8000/admin](http://localhost:8000/admin)
 
 4. **Stopping the containers**
-   Press `Ctrl+C` in the terminal running Docker Compose, or run:
+   <p>Press `Ctrl+C` in the terminal running Docker Compose, or run:</p>
    ```bash
    docker compose down
    ```
+   
 5. **Create new app**
-   Open a new terminal and run:
+      <p> Open a new terminal and run:</p>
 
    ```bash
    docker compose exec web python manage.py startapp <app_name> apps/<app_name>
