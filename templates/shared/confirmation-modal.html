@@ -1,0 +1,37 @@
+{% extends "shared/modal.html" %}
+{% block modal_content %}
+  <form id="confirmationModalForm" method="post">
+    <div class="modal-header">
+      <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+      <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmationModalBody">Are you sure you want to proceed?</p>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-primary" id="confirmModalBtn">Confirm</button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+  </form>
+{% endblock %}
+
+<script>
+function showConfirmationModal(message, onSubmit) {
+  document.getElementById('confirmationModalBody').textContent = message;
+  const form = document.getElementById('confirmationModalForm');
+  // Remove previous submit handlers
+  form.onsubmit = null;
+  if (onSubmit) {
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      onSubmit();
+      const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+      modal.hide();
+    };
+  }
+  const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+  modal.show();
+}
+</script>

@@ -1,0 +1,11 @@
+<textarea
+  name="{{ name }}"
+  id="{{ id|default:name }}"
+  class="form-control"
+  rows="{{ rows|default:'3' }}"
+  placeholder="{{ placeholder|default:'' }}"
+  {% if required %}required{% endif %}
+  {% if disabled %}disabled{% endif %}
+>
+{{ value|default:'' }}
+</textarea>

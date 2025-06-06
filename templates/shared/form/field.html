@@ -1,0 +1,17 @@
+<div class="input-group mb-3">
+  {% if label %}
+  <div class ="input-group-prepend">
+    <span class="input-group-text" id="{{id}}">{{ label }}</span>
+  </div>
+  {% endif %}
+
+  {% if type == "select" %}
+    {% include "shared/form/components/select.html" %}
+  {% elif type == "textarea" %}
+    {% include "shared/form/components/text-area.html" %}
+  {% elif type == "file" %}
+    {% include "shared/form/components/file-input.html" %}
+  {% else %}
+    {% include "shared/form/components/input.html" %}
+  {% endif %}
+</div>

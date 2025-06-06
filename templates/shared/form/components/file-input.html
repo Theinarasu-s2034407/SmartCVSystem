@@ -1,0 +1,12 @@
+<div class="custom-file">
+  <input
+    type="file"
+    class=" form-control custom-file-input"
+    id="{{ id|default:name }}"
+    name="{{ name }}"
+    {% if disabled %}disabled{% endif %}
+  >
+  <label class="custom-file-label" for="{{ id|default:name }}">
+    {{ label|default:"Choose file" }}
+  </label>
+</div>
