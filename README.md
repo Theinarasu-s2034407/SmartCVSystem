@@ -245,7 +245,7 @@ This project provides a reusable dynamic table component for displaying tabular 
 Create a `columns` list (for table headers and actions) and a `data` list (for table rows):
 
 ```python
-# Example in [views.py](http://_vscodecontentref_/0)
+# Example in views.py
 columns = [
     {'key': 'name', 'label': 'Name'},
     {'key': 'email', 'label': 'Email'},
