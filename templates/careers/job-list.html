@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ site_name }}{% endblock %}
+{% block content %} 
+  <h2 class="flex-grow-1">Job Opening</h2>
+  {% include "shared/table/table.html" with columns=columns data=data %} 
+{% endblock %}
