@@ -181,10 +181,11 @@ python manage.py runserver
 
 4. **Stopping the containers**
    <p>Press `Ctrl+C` in the terminal running Docker Compose, or run:</p>
+
    ```bash
    docker compose down
    ```
-   
+
 5. **Create new app**
       <p> Open a new terminal and run:</p>
 
@@ -193,3 +194,79 @@ python manage.py runserver
    ```
 **Note:**
 Make sure your `.env` file is configured with the correct database and AWS credentials before starting the containers.
+
+## 📄 Dynamic Form and Table Components
+
+## 📝 How to Use the Dynamic Form Component
+
+This project provides a reusable dynamic form component for rapid form creation.
+
+---
+
+### 1. **Define your field configuration in your Django view**
+
+Create a `fieldConfig` list of dictionaries, where each dictionary describes a field:
+
+```python
+# Example in views.py
+fieldConfig = [
+    {
+        'type': 'text',
+        'name': 'first_name',
+        'id': 'first_name',
+        'label': 'First Name',
+        'placeholder': 'Enter first name',
+        'required': True,
+        'disabled': False,
+        'value': '',
+        'help_text': '',
+    },
+    # ... more fields ...
+]
+return render(request, 'your_template.html', {
+    'fieldConfig': fieldConfig,
+    'method': 'POST',
+    'action': '/your-action-url/',
+    'submit_label': 'Submit',
+})
+```
+### 2. **Use the component in your template**
+```html
+{% include "shared/form/form.html" with fieldConfig=fieldConfig method=method action=action enctype=enctype submit_label=submit_label %}
+```
+## 📊 How to Use the Dynamic Table Component
+
+This project provides a reusable dynamic table component for displaying tabular data with optional action buttons.
+
+---
+
+### 1. **Define your columns and data in your Django view**
+
+Create a `columns` list (for table headers and actions) and a `data` list (for table rows):
+
+```python
+# Example in [views.py](http://_vscodecontentref_/0)
+columns = [
+    {'key': 'name', 'label': 'Name'},
+    {'key': 'email', 'label': 'Email'},
+    {
+        'label': 'Action',
+        'type': 'action',
+        'actions': [
+            {'url_name': 'candidate_detail', 'label': 'View', 'class': 'btn-primary'}
+        ]
+    }
+]
+data = [
+    {'name': 'John Doe', 'email': 'john@example.com'},
+    # ... more rows ...
+]
+return render(request, 'your_template.html', {
+    'columns': columns,
+    'data': data,
+})
+```
+### 2. **Use the component in your template**
+```html
+{% include "shared/table/table.html" with columns=columns data=data %}
+```
