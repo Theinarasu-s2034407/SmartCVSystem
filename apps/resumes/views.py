@@ -27,7 +27,7 @@ class ResumeView:
                 ]
             }
         ]
-        return render(request, 'resumes/candidates.html', {'columns': columns, 'data': data})
+        return render(request, 'resumes/candidates/candidates.html', {'columns': columns, 'data': data})
 
     # Function to get a specific candidate by ID
     @staticmethod
@@ -48,7 +48,7 @@ class ResumeView:
             'expected_salary': candidate['expected_salary'],
         }
         
-        return render(request, 'resumes/candidate_detail.html', {'data': data})
+        return render(request, 'resumes/candidates/candidate-detail.html', {'data': data})
 
     # Function to get all applications
     @staticmethod
@@ -87,8 +87,8 @@ class ResumeView:
                 ]
             }
         ]
-        
-        return render(request, 'resumes/applications.html', {'columns': columns, 'data': data})
+
+        return render(request, 'resumes/applications/applications.html', {'columns': columns, 'data': data})
 
     # Function to upload cv/resume to S3 bucket for production and local storage for development
     @staticmethod
