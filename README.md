@@ -184,6 +184,11 @@ python manage.py runserver
    ```bash
    docker compose down
    ```
+5. **Create new app**
+   Open a new terminal and run:
 
+   ```bash
+   docker compose exec web python manage.py startapp <app_name> apps/<app_name>
+   ```
 **Note:**
 Make sure your `.env` file is configured with the correct database and AWS credentials before starting the containers.
