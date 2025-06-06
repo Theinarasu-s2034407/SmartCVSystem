@@ -1,15 +1,15 @@
 <select
-  name="{{ name }}"
-  id="{{ id|default:name }}"
+  name="{{ field.name }}"
+  id="{{ field.id|default:field.name }}"
   class="form-control"
-  {% if required %}required{% endif %}
-  {% if disabled %}disabled{% endif %}
+  {% if field.required %}required{% endif %}
+  {% if field.disabled %}disabled{% endif %}
 >
-  {% if placeholder %}
-    <option value="" disabled {% if not value %}selected{% endif %}>{{ placeholder }}</option>
+  {% if field.placeholder %}
+    <option value="" disabled {% if not field.value %}selected{% endif %}>{{ field.placeholder }}</option>
   {% endif %}
-  {% for option in options %}
-    <option value="{{ option.value }}" {% if option.value == value %}selected{% endif %}>
+  {% for option in field.options %}
+    <option value="{{ option.value }}" {% if option.value == field.value %}selected{% endif %}>
       {{ option.label }}
     </option>
   {% endfor %}

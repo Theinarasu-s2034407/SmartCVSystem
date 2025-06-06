@@ -1,18 +1,7 @@
 <form method="{{ method|default:'post' }}" action="{{ action|default:'' }}" {% if enctype %}enctype="{{ enctype }}"{% endif %}>
   {% csrf_token %}
   {% for field in fieldConfig %}
-    {% include "shared/form/field.html" with
-      type=field.type
-      name=field.name
-      id=field.id
-      label=field.label
-      value=field.value
-      placeholder=field.placeholder
-      required=field.required
-      disabled=field.disabled
-      options=field.options
-      help_text=field.help_text
-    %}
+    {% include "shared/form/field.html" with field=field %}
   {% endfor %}
   <button type="submit" class="btn btn-primary">{{ submit_label|default:"Submit" }}</button>
 </form>

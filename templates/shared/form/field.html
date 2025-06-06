@@ -1,17 +1,16 @@
 <div class="input-group mb-3">
-  {% if label %}
-  <div class ="input-group-prepend">
-    <span class="input-group-text" id="{{id}}">{{ label }}</span>
-  </div>
+  {% if field.label %}
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="{{ field.id }}">{{ field.label }}</span>
+    </div>
   {% endif %}
-
-  {% if type == "select" %}
-    {% include "shared/form/components/select.html" %}
-  {% elif type == "textarea" %}
-    {% include "shared/form/components/text-area.html" %}
-  {% elif type == "file" %}
-    {% include "shared/form/components/file-input.html" %}
+  {% if field.type == "select" %}
+    {% include "shared/form/components/select.html" with field=field %}
+  {% elif field.type == "textarea" %}
+    {% include "shared/form/components/text-area.html" with field=field %}
+  {% elif field.type == "file" %}
+    {% include "shared/form/components/file-input.html" with field=field %}
   {% else %}
-    {% include "shared/form/components/input.html" %}
+    {% include "shared/form/components/input.html" with field=field %}
   {% endif %}
 </div>

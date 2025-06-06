@@ -1,11 +1,9 @@
 <textarea
-  name="{{ name }}"
-  id="{{ id|default:name }}"
+  name="{{ field.name }}"
+  id="{{ field.id|default:field.name }}"
   class="form-control"
-  rows="{{ rows|default:'3' }}"
-  placeholder="{{ placeholder|default:'' }}"
-  {% if required %}required{% endif %}
-  {% if disabled %}disabled{% endif %}
->
-{{ value|default:'' }}
-</textarea>
+  rows="{{ field.rows|default:'3' }}"
+  placeholder="{{ field.placeholder|default:'' }}"
+  {% if field.required %}required{% endif %}
+  {% if field.disabled %}disabled{% endif %}
+>{{ field.value|default:'' }}</textarea>

@@ -1,10 +1,10 @@
 <input
-  type="{{ type|default:'text' }}"
-  name="{{ name }}"
-  id="{{ id|default:name }}"
+  type="{{ field.type|default:'text' }}"
+  name="{{ field.name }}"
+  id="{{ field.id|default:field.name }}"
   class="form-control"
-  value="{{ value|default:'' }}"
-  placeholder="{{ placeholder|default:'' }}"
-  {% if required %}required{% endif %}
-  {% if disabled %}disabled{% endif %}
+  value="{{ field.value|default:'' }}"
+  placeholder="{{ field.placeholder|default:'' }}"
+  {% if field.required %}required{% endif %}
+  {% if field.disabled %}disabled{% endif %}
 />

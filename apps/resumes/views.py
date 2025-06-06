@@ -97,3 +97,118 @@ class ResumeView:
             # Handle file upload logic here
             pass  # TODO: Implement file upload logic
         return render(request, 'resumes/upload_resume.html')  # TODO: Create the upload resume template
+    
+    # Function to render the application form
+    @staticmethod
+    def apply(request):
+       fieldConfig = [
+            {
+                'type': 'text',
+                'name': 'first_name',
+                'id': 'first_name',
+                'label': 'First Name',
+                'placeholder': 'Enter first name',
+                'required': True,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'text',
+                'name': 'last_name',
+                'id': 'last_name',
+                'label': 'Last Name',
+                'placeholder': 'Enter last name',
+                'required': True,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'email',
+                'name': 'email',
+                'id': 'email',
+                'label': 'Email',
+                'placeholder': 'Enter email',
+                'required': True,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'text',
+                'name': 'phone',
+                'id': 'phone',
+                'label': 'Phone Number',
+                'placeholder': 'Enter phone number',
+                'required': False,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'text',
+                'name': 'linkedin_profile',
+                'id': 'linkedin_profile',
+                'label': 'LinkedIn Profile',
+                'placeholder': '',
+                'required': False,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'text',
+                'name': 'nationality',
+                'id': 'nationality',
+                'label': 'Nationality',
+                'placeholder': 'Enter nationality',
+                'required': False,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'text',
+                'name': 'notice_period',
+                'id': 'notice_period',
+                'label': 'Notice Period',
+                'placeholder': 'Enter notice period',
+                'required': False,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'number',
+                'name': 'expected_salary',
+                'id': 'expected_salary',
+                'label': 'Expected Salary',
+                'placeholder': 'Enter expected salary',
+                'required': False,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+            {
+                'type': 'file',
+                'name': 'resume_file',
+                'id': 'resume_file',
+                'label': 'Upload Resume/CV',
+                'placeholder': '',
+                'required': True,
+                'disabled': False,
+                'value': '',
+                'help_text': '',
+            },
+        ]
+       return render(
+            request,
+            'resumes/applications/application-form.html',
+            {
+                'fieldConfig': fieldConfig,
+                'action': 'apply',
+                'method': 'POST',
+                'submit_label': 'Apply',
+            }
+        )
