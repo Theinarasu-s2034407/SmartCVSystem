@@ -1,10 +1,53 @@
 import os
+import PyPDF2  
+import re
 from django.conf import settings
 from django.utils import timezone
 from django.shortcuts import render
-from apps.resumes.models import Candidate, Application
+from apps.resumes.models import Candidate, Application, CVExtraction
 
+def extract_skills_and_experience_from_pdf(pdf_path):
+    summary_text = ""
+    skills_text = ""
+    experience_years = 0
 
+    # Read PDF text
+    try:
+        with open(pdf_path, "rb") as f:
+            reader = PyPDF2.PdfReader(f)
+            for page in reader.pages:
+                page_text = page.extract_text() or ""
+                summary_text += page_text
+                # Extract "skills" section text if present. 
+                # TODO: Fix the bugs because it didn't extract skills from skills section
+                skills_match = re.search(r"skills\s*[:\-]?\s*(.*?)(?:\n\n|\r\n\r\n|$)", page_text, re.IGNORECASE | re.DOTALL)
+                if skills_match:
+                    skills_text += skills_match.group(1) + "\n"
+    except Exception as e:
+        summary_text = ""
+
+    # Extract skills as comma/line/space separated words from the skills_text
+    skills_found = set()
+    if skills_text:
+        # Split by comma, semicolon, or newline, then strip and lower
+        for skill in re.split(r'[,;\n]', skills_text):
+            skill = skill.strip()
+            if len(skill) > 1:
+                skills_found.add(skill.lower())
+    else:
+        # fallback: extract all unique words with at least 3 letters from summary_text
+        words = set(re.findall(r'\b[a-zA-Z]{3,}\b', summary_text))
+        skills_found = {word.lower() for word in words}
+
+    # Extract experience (simple heuristic: look for "X years" or "X+ years")
+    exp_matches = re.findall(r'(\d+)\s*\+?\s*years?', summary_text, re.IGNORECASE)
+    if exp_matches:
+        experience_years = max([int(x) for x in exp_matches])
+
+    return {
+        "skills": list(skills_found),
+        "experience": experience_years
+    }
 class ResumeView:
     # Function to get all candidates
     @staticmethod
@@ -93,7 +136,7 @@ class ResumeView:
         ]
 
         return render(request, 'resumes/applications/applications.html', {'columns': columns, 'data': data})
-    
+
     # Function to render the application form
     @staticmethod
     def apply(request):
@@ -235,10 +278,10 @@ class ResumeView:
             if existing_application:
                 # Do not create temp folder or save file again
                 return render(request, 'resumes/upload-success.html', {
-                    'file_path': existing_application.resume_file,
                     'message': 'You have already applied for this job.'
             })
             else:
+                #TODO: local dev only, need to store in S3 for production
                 temp_dir = os.path.join(settings.BASE_DIR, 'tmp', f'job_{job_id}', f'candidate_{candidate.email}')
                 os.makedirs(temp_dir, exist_ok=True)
                 temp_file_path = os.path.join(temp_dir, resume_file.name)
@@ -249,7 +292,7 @@ class ResumeView:
                         destination.write(chunk)
 
             # Save application (job_id=1, resume_file path)
-                Application.objects.create(
+                application = Application.objects.create(
                     candidate=candidate,
                     job_id=1,  # Hardcoded as requested
                     company_name="N/A",  # Placeholder, adjust as needed
@@ -257,8 +300,14 @@ class ResumeView:
                     resume_file=temp_file_path,
                     application_date=timezone.now(),
                 )
+                 # Extract data from PDF and store in CVExtraction
+                extracted_data = extract_skills_and_experience_from_pdf(temp_file_path)
+                CVExtraction.objects.create(
+                    application=application,
+                    extracted_data=extracted_data
+                )
 
-                return render(request, 'resumes/upload-success.html', {'file_path': temp_file_path})
+                return render(request, 'resumes/upload-success.html', {'message': 'Successfully applied for the job!'})
 
         # Render the application form for GET
         return render(
