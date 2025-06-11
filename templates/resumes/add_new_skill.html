@@ -1,0 +1,60 @@
+{% extends "dashboard.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <!-- List of available skills -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4>List of available skills</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Skill name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for skill in skills %}
+                    <tr>
+                        <td>{{ skill.name }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-muted">No record</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4>Add new skill</h4>
+        </div>
+        <div class="card-body">
+            <br/>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-9">
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="alert alert-danger mt-2">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Add new skill
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "dashboard.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Upload new resume</h2>
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="id_file" class="form-label">Resume File</label>
+            {{ form.file }}
+            <div class="invalid-feedback">
+                Please choose correct file type（PDF/Word）
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_tags" class="form-label">Tags</label>
+            {{ form.tags }}
+            <small class="form-text text-muted">（eg.Java,Python）</small>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label">Relevant skills</label>
+            <div class="border p-3 rounded">
+                {% for skill in form.skills %}
+                <div class="form-check form-check-inline">
+                    {{ skill }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload resume</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<style>
+    .invalid-feedback { display: block; }
+    .form-control-file { display: block; width: 100%; }
+</style>
+{% endblock %}
