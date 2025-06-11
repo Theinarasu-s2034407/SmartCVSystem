@@ -230,27 +230,35 @@ class ResumeView:
                 candidate.save()
             
             # Create a unique temp folder for the candidate
-            job_id = 1  # Hardcoded as requested
-            temp_dir = os.path.join(settings.BASE_DIR, 'tmp', f'job_{job_id}', f'candidate_{candidate.email}')
-            os.makedirs(temp_dir, exist_ok=True)
-            temp_file_path = os.path.join(temp_dir, resume_file.name)
+            job_id = 1  # TODO: need to get job_id from the request or context
+            existing_application = Application.objects.filter(candidate=candidate, job_id=job_id).first()
+            if existing_application:
+                # Do not create temp folder or save file again
+                return render(request, 'resumes/upload-success.html', {
+                    'file_path': existing_application.resume_file,
+                    'message': 'You have already applied for this job.'
+            })
+            else:
+                temp_dir = os.path.join(settings.BASE_DIR, 'tmp', f'job_{job_id}', f'candidate_{candidate.email}')
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_file_path = os.path.join(temp_dir, resume_file.name)
 
-            # Save file to the candidate's temp folder
-            with open(temp_file_path, 'wb+') as destination:
-                for chunk in resume_file.chunks():
-                    destination.write(chunk)
+                 # Save file to the candidate's temp folder
+                with open(temp_file_path, 'wb+') as destination:
+                    for chunk in resume_file.chunks():
+                        destination.write(chunk)
 
             # Save application (job_id=1, resume_file path)
-            Application.objects.create(
-                candidate=candidate,
-                job_id=1,  # Hardcoded as requested
-                company_name="N/A",  # Placeholder, adjust as needed
-                status='applied',
-                resume_file=temp_file_path,
-                application_date=timezone.now(),
-            )
+                Application.objects.create(
+                    candidate=candidate,
+                    job_id=1,  # Hardcoded as requested
+                    company_name="N/A",  # Placeholder, adjust as needed
+                    status='applied',
+                    resume_file=temp_file_path,
+                    application_date=timezone.now(),
+                )
 
-            return render(request, 'resumes/upload-success.html', {'file_path': temp_file_path})
+                return render(request, 'resumes/upload-success.html', {'file_path': temp_file_path})
 
         # Render the application form for GET
         return render(
