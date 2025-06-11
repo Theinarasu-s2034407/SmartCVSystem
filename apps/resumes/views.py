@@ -1,5 +1,9 @@
+import os
+from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import render
 from apps.resumes.models import Candidate, Application
+
 
 class ResumeView:
     # Function to get all candidates
@@ -89,19 +93,11 @@ class ResumeView:
         ]
 
         return render(request, 'resumes/applications/applications.html', {'columns': columns, 'data': data})
-
-    # Function to upload cv/resume to S3 bucket for production and local storage for development
-    @staticmethod
-    def upload_resume(request):
-        if request.method == 'POST':
-            # Handle file upload logic here
-            pass  # TODO: Implement file upload logic
-        return render(request, 'resumes/upload_resume.html')  # TODO: Create the upload resume template
     
     # Function to render the application form
     @staticmethod
     def apply(request):
-       fieldConfig = [
+        fieldConfig = [
             {
                 'type': 'text',
                 'name': 'first_name',
@@ -202,13 +198,71 @@ class ResumeView:
                 'help_text': '',
             },
         ]
-       return render(
+
+        if request.method == 'POST':
+            # Get form data
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            phone = request.POST.get('phone')
+            linkedin_profile = request.POST.get('linkedin_profile')
+            nationality = request.POST.get('nationality')
+            resume_file = request.FILES.get('resume_file')
+
+            # Save candidate (get or create by email)
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'phone': phone,
+                    'linkedin_profile': linkedin_profile,
+                    'nationality': nationality,
+                }
+            )
+            # If candidate exists, update fields
+            if not created:
+                candidate.first_name = first_name
+                candidate.last_name = last_name
+                candidate.phone = phone
+                candidate.linkedin_profile = linkedin_profile
+                candidate.nationality = nationality
+                candidate.save()
+            
+            # Create a unique temp folder for the candidate
+            job_id = 1  # Hardcoded as requested
+            temp_dir = os.path.join(settings.BASE_DIR, 'tmp', f'job_{job_id}', f'candidate_{candidate.email}')
+            os.makedirs(temp_dir, exist_ok=True)
+            temp_file_path = os.path.join(temp_dir, resume_file.name)
+
+            # Save file to the candidate's temp folder
+            with open(temp_file_path, 'wb+') as destination:
+                for chunk in resume_file.chunks():
+                    destination.write(chunk)
+
+            # Save application (job_id=1, resume_file path)
+            Application.objects.create(
+                candidate=candidate,
+                job_id=1,  # Hardcoded as requested
+                company_name="N/A",  # Placeholder, adjust as needed
+                status='applied',
+                resume_file=temp_file_path,
+                application_date=timezone.now(),
+            )
+
+            return render(request, 'resumes/upload-success.html', {'file_path': temp_file_path})
+
+        # Render the application form for GET
+        return render(
             request,
             'resumes/applications/application-form.html',
             {
                 'fieldConfig': fieldConfig,
-                'action': 'apply',
+                'action': '/resumes/apply',  # Updated form action URL
                 'method': 'POST',
                 'submit_label': 'Apply',
+                'enctype': 'multipart/form-data',
             }
         )
+    
+   

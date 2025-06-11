@@ -23,7 +23,6 @@ class Application(models.Model):
     status = models.CharField(max_length=50, choices=[
         ('applied', 'Applied'),
         ('interviewed', 'Interviewed'),
-        ('offered', 'Offered'),
         ('rejected', 'Rejected')
     ], default='applied')
     resume_file = models.FileField(upload_to='resumes/', blank=True, null=True)  # Assuming resumes are uploaded as files
