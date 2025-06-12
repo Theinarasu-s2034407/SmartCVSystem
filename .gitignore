@@ -109,3 +109,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# temp folder
+tmp/*
+
+# Prettier
+.prettierignore
