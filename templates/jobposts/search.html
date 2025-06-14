@@ -1,14 +1,15 @@
-{% extends "base.html" %} {% load markdownify job_extras %} {% block title %}Job
-Search | {{ site_name }}{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% load markdownify job_extras %}
+{% block title %}Job Search | {{ site_name }}{% endblock %}
+
+{% block content %}
 <div class="container mb-5">
   <h2>Find Jobs</h2>
 
   <form method="get" class="row g-2 mb-4">
     <div class="col-md-10">
       <input
-        type="text"
-        name="q"
-        value="{{ query }}"
+        type="text" name="q" value="{{ query }}"
         class="form-control"
         placeholder="Search by title, description, skills…"
       />
@@ -45,7 +46,7 @@ Search | {{ site_name }}{% endblock %} {% block content %}
         {% endif %}
       </p>
 
-      {# Industry, Experience, Education #}
+            {# Industry, Experience, Education #}
       <p class="mb-2">
         {% if job.Industry %}
         <strong>Industry:</strong> {{ job.Industry }}<br />
@@ -70,28 +71,20 @@ Search | {{ site_name }}{% endblock %} {% block content %}
         {{ job.Benefits|markdownify|safe }}
       </div>
       {% endif %} {# Apply/Save buttons #}
-      <div class="d-flex gap-2">
-        <form method="post" class="d-inline">
-          {% csrf_token %}
-          <input type="hidden" name="job_id" value="{{ job.JobPostID }}" />
-          <input type="hidden" name="q" value="{{ query }}" />
-          <button
-            type="submit"
-            name="action"
-            value="apply"
-            class="btn btn-sm {% if uj and uj.IsApplied %}btn-secondary disabled{% else %}btn-success{% endif %}"
-            {%
-            if
-            uj
-            and
-            uj.IsApplied
-            %}disabled{%
-            endif
-            %}
-          >
-            {% if uj and uj.IsApplied %}Applied{% else %}Apply Now{% endif %}
-          </button>
-        </form>
+
+            <div class="d-flex gap-2">
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="job_id" value="{{ job.JobPostID }}" />
+                <input type="hidden" name="q" value="{{ query }}" />
+                <button
+                  type="submit" name="action" value="apply"
+                  class="btn btn-sm {% if uj and uj.IsApplied %}btn-secondary{% else %}btn-success{% endif %}"
+                  {% if uj and uj.IsApplied %}disabled{% endif %}
+                >
+                  {% if uj and uj.IsApplied %}Applied{% else %}Apply Now{% endif %}
+                </button>
+              </form>
 
         <form method="post" class="d-inline">
           {% csrf_token %}
