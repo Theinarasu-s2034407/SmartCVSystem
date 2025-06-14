@@ -1,3 +1,6 @@
+import os
+import shutil
+import boto3
 from django.shortcuts           import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -19,6 +22,7 @@ from .forms import ResumeForm
 from .models import ResumeFile
 from apps.jobposts.models import JobPost, UserJob
 from django.utils import timezone
+from django.conf import settings
 
 class DetailView(View):
     def get(self, request):
@@ -45,7 +49,33 @@ class ManageResumesView(SessionRequiredMixin,View):
                 rf.UserID_id = user_id 
                 rf.Status = 'Uploaded'
                 rf.save()
-                messages.success(request, "Resume uploaded.")
+
+                local_file_path = rf.FilePath.path
+                if not settings.DEBUG:
+                    # S3 logic
+                    with open(local_file_path, 'rb') as resume_file:
+                        s3 = boto3.client(
+                            's3', 
+                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                            region_name=settings.AWS_S3_REGION_NAME
+                        )
+                        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                        s3_path = f"resumes/{user_id}/{os.path.basename(local_file_path)}"
+                        s3.upload_fileobj(resume_file, bucket_name, s3_path, ExtraArgs={'ContentType': 'application/pdf'})
+                        s3_url = f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{s3_path}"
+                        rf.FilePath = s3_url
+                        rf.save()
+                        # Delete the local file
+                        if os.path.exists(local_file_path):
+                            os.remove(local_file_path)
+                        # Delete the media folder if empty
+                        media_root = settings.MEDIA_ROOT
+                        if os.path.exists(media_root) and not os.listdir(media_root):
+                            shutil.rmtree(media_root)
+                        messages.success(request, "Resume uploaded.")
+                else:
+                    messages.success(request, "Resume uploaded.")
             else:
                  return render(request, 'profile/resume.html', {
                     'resume_form': form
