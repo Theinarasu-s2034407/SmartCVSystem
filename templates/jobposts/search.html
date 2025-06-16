@@ -38,7 +38,7 @@ Search | {{ site_name }}{% endblock %} {% block content %}
         <strong>Remote:</strong> {{ job.RemoteOption }}<br />
         {% if job.MinSalary or job.MaxSalary %}
         <strong>Salary:</strong>
-        {{ job.MinSalary|default:"—" }} – {{ job.MaxSalary|default:"—" }}
+       RM {{ job.MinSalary|default:"—" }} – {{ job.MaxSalary|default:"—" }}
         <small>per annum</small><br />
         {% endif %} {% if job.ApplicationDeadline %}
         <strong>Deadline:</strong> {{ job.ApplicationDeadline|date:"Y-m-d" }}<br />
