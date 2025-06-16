@@ -1,6 +1,11 @@
 import os
 import shutil
 import boto3
+import fitz
+import urllib.parse
+import io
+import re
+import logging
 from botocore.exceptions import ClientError
 from django.shortcuts           import render, redirect
 from django.views import View
@@ -20,10 +25,73 @@ from apps.authx.models          import (
     Company, CompanyUser
 )
 from .forms import ResumeForm
-from .models import ResumeFile
+from .models import ResumeFile, ParsedData 
 from apps.jobposts.models import JobPost, UserJob
 from django.utils import timezone
 from django.conf import settings
+
+
+def extract_resume_info_from_s3(bucket_name, key, aws_access_key=None, aws_secret_key=None, region='us-east-1'):
+        fallback_resume_data = {
+            "skills": "",
+            "education_level": "Unknown",
+            "experience_level": "unknown"
+        }
+        try:
+            session = boto3.Session(
+                aws_access_key_id=aws_access_key,
+                aws_secret_access_key=aws_secret_key,
+                region_name=region
+            )
+            s3 = session.client('s3')
+            s3_object = s3.get_object(Bucket=bucket_name, Key=key)
+            file_stream = io.BytesIO(s3_object['Body'].read())
+        except Exception as e:
+            logging.error(f"[S3 Read Error] {e}")
+            return fallback_resume_data
+
+        try:
+            doc = fitz.open(stream=file_stream, filetype="pdf")
+            full_text = "\n".join(page.get_text() for page in doc).lower()
+        except Exception as e:
+            logging.error(f"[PDF Parse Error] {e}")
+            return fallback_resume_data
+
+        resume_data = {
+            "skills": "",
+            "education_level": "Unknown",
+            "experience_level": "unknown"
+        }
+
+        skill_keywords = [
+            'javascript', 'python', 'java', 'php', 'react', 'vue', 'html', 'css',
+            'node', 'typescript', 'mongodb', 'mysql', 'aws', 'firebase', 'laravel',
+            'django', 'flask', 'fastapi', 'bootstrap', 'git', 'docker', 'redis'
+        ]
+        found_skills = {kw.capitalize() for kw in skill_keywords if re.search(rf'\b{kw}\b', full_text)}
+        resume_data["skills"] = ", ".join(sorted(found_skills))
+
+        if "bachelor" in full_text:
+            resume_data["education_level"] = "Bachelor's Degree"
+        elif "master" in full_text:
+            resume_data["education_level"] = "Master's Degree"
+        elif "diploma" in full_text:
+            resume_data["education_level"] = "Diploma"
+        elif "phd" in full_text or "doctor of philosophy" in full_text:
+            resume_data["education_level"] = "PhD"
+
+        experience_patterns = [
+            (r"([6-9]|[1-9][0-9]+)\s*(\+)?\s*(years|yrs)", "senior"),
+            (r"(3|4)\s*(years|yrs)", "mid"),
+            (r"(0|1|2)\s*(years|yrs)", "junior"),
+            (r"\bintern(ship)?\b", "junior")
+        ]
+        for pattern, level in experience_patterns:
+            if re.search(pattern, full_text):
+                resume_data["experience_level"] = level
+                break
+
+        return resume_data
 
 class DetailView(View):
     def get(self, request):
@@ -75,7 +143,7 @@ class ManageResumesView(SessionRequiredMixin,View):
                         media_root = settings.MEDIA_ROOT
                         if os.path.exists(media_root) and not os.listdir(media_root):
                             shutil.rmtree(media_root)
-                        messages.success(request, "Resume uploaded.")
+                        messages.success(request, "Resume uploaded")
                 else:
                     messages.success(request, "Resume uploaded.")
             else:
@@ -89,6 +157,7 @@ class ManageResumesView(SessionRequiredMixin,View):
             # mark new
             ResumeFile.objects.filter(pk=sel_id, UserID=user_id).update(IsSelected=True)
             messages.success(request, "Selected resume updated.")
+    
         elif action == 'delete':
             sel_id = request.POST.get('selected_id')
             if sel_id:
@@ -96,7 +165,6 @@ class ManageResumesView(SessionRequiredMixin,View):
                     resume = ResumeFile.objects.get(pk=sel_id, UserID=user_id)
                     # Delete only the file in S3 based on id and fileName.pdf, keep the resumes folder
                     if not settings.DEBUG and resume.FilePath and str(resume.FilePath).startswith("http"):
-                        import urllib.parse
                         s3 = boto3.client(
                             's3',
                             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -135,6 +203,38 @@ class ManageResumesView(SessionRequiredMixin,View):
                     messages.error(request, f"Error deleting resume: {e}")
             else:
                 messages.error(request, "No resume selected for deletion.")
+
+        elif action == 'extract':
+            sel_id = request.POST.get('selected_id')
+            if sel_id:
+                try:
+                    resume = ResumeFile.objects.get(pk=sel_id, UserID=user_id)
+                    # Only proceed if the file is stored in S3
+                    if resume.FilePath and str(resume.FilePath).startswith("http"):
+                        parsed_url = urllib.parse.urlparse(str(resume.FilePath))
+                        print(parsed_url)
+                        s3_key = parsed_url.path.lstrip('/')  # e.g. resumes/1/filename.pdf
+                        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                        aws_access_key = settings.AWS_ACCESS_KEY_ID
+                        aws_secret_key = settings.AWS_SECRET_ACCESS_KEY
+                        region = getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
+                        resume_info = extract_resume_info_from_s3(
+                            bucket_name, s3_key, aws_access_key, aws_secret_key, region
+                        )
+                        # Store the extracted data in ParsedData model
+                        ParsedData.objects.create(
+                            ResumeID=resume,
+                            Data=resume_info
+                        )
+                        messages.success(request, "Resume extracted and data saved successfully.")
+                    else:
+                        messages.error(request, "Resume file is not available in S3 for extraction.")
+                except ResumeFile.DoesNotExist:
+                    messages.error(request, "Resume not found.")
+                except Exception as e:
+                    messages.error(request, f"Error extracting resume: {e}")
+            else:
+                messages.error(request, "No resume selected for extraction.")
 
         return redirect('profiles:resume')
     
