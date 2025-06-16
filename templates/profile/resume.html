@@ -53,7 +53,8 @@
           <h5 class="mb-0">Uploaded Resumes</h5>
         </div>
         <div class="card-body p-0">
-          <form method="post">
+          <form method="post" id="resume-form">
+            <input type="hidden" name="action" id="action-hidden">
             {% csrf_token %}
             <table class="table table-hover mb-0">
               <thead class="table-light">
@@ -72,6 +73,7 @@
                     <input
                       type="radio"
                       name="selected_id"
+                      class="resume-radio"
                       value="{{ resume.pk }}"
                       {% if resume.IsSelected %} checked{% endif %}
                     />
@@ -107,6 +109,8 @@
                 name="action"
                 value="select"
                 class="btn btn-primary"
+                id="save-selection-btn"
+                disabled
               >
                 Save Selection
               </button>
@@ -115,11 +119,69 @@
                 name="action"
                 value="delete"
                 class="btn btn-warning"
+                id="delete-selection-btn"
+                disabled
+                onclick="return confirm('Are you sure you want to delete the selected resume? This action cannot be undone.');"
               >
                 Delete Selection
               </button>
+              <button
+              type="button"
+              class="btn btn-secondary"
+             id="clear-selection-btn"
+            disabled
+            >
+              Clear Selection
             </div>
           </form>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('.resume-radio');
+    const saveBtn = document.getElementById('save-selection-btn');
+    const deleteBtn = document.getElementById('delete-selection-btn');
+    const clearBtn = document.getElementById('clear-selection-btn');
+    const form = document.getElementById('resume-form');
+
+    function updateButtons() {
+      if (document.querySelector('.resume-radio:checked')) {
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (clearBtn) clearBtn.disabled = false;
+      } else {
+        if (saveBtn) saveBtn.disabled = true;
+        if (deleteBtn) deleteBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+      }
+    }
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', updateButtons);
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        radios.forEach(radio => radio.checked = false);
+        updateButtons();
+      });
+    }
+
+    if (form) {
+   form.addEventListener('submit', function(e) {
+  if (document.activeElement === saveBtn) {
+    document.getElementById('action-hidden').value = 'select';
+    saveBtn.disabled = true;
+    deleteBtn.disabled = true;
+  } else if (document.activeElement === deleteBtn) {
+    document.getElementById('action-hidden').value = 'delete';
+    saveBtn.disabled = true;
+    deleteBtn.disabled = true;
+  }
+});
+    }
+
+    updateButtons();
+  });
+</script>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import os
 import shutil
 import boto3
+from botocore.exceptions import ClientError
 from django.shortcuts           import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -41,6 +42,7 @@ class ManageResumesView(SessionRequiredMixin,View):
     def post(self, request):
         user_id = request.session['user_id']
         action  = request.POST.get('action')
+        print(f"Action: {action}")
 
         if action == 'upload':
             form = ResumeForm(request.POST, request.FILES)
@@ -87,6 +89,48 @@ class ManageResumesView(SessionRequiredMixin,View):
             # mark new
             ResumeFile.objects.filter(pk=sel_id, UserID=user_id).update(IsSelected=True)
             messages.success(request, "Selected resume updated.")
+        elif action == 'delete':
+            sel_id = request.POST.get('selected_id')
+            if sel_id:
+                try:
+                    resume = ResumeFile.objects.get(pk=sel_id, UserID=user_id)
+                    # Delete from S3 if not debug and FilePath is an S3 URL
+                    if not settings.DEBUG and resume.FilePath and str(resume.FilePath).startswith("http"):
+                        s3 = boto3.client(
+                            's3',
+                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                            region_name=settings.AWS_S3_REGION_NAME,
+                        )
+                        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                        # Extract S3 key from the URL
+                        s3_key = '/'.join(str(resume.FilePath).split('/', 3)[-1:])
+                        # Check if the object exists before deleting
+                        try:
+                            s3.head_object(Bucket=bucket_name, Key=s3_key)
+                            s3.delete_object(Bucket=bucket_name, Key=s3_key)
+                        except ClientError as e:
+                            if e.response['Error']['Code'] == "404":
+                                # Object does not exist, nothing to delete
+                                pass
+                            else:
+                                raise
+                    # Delete local file if exists
+                    elif resume.FilePath and hasattr(resume.FilePath, 'path') and os.path.exists(resume.FilePath.path):
+                        os.remove(resume.FilePath.path)
+                        # Optionally remove media folder if empty
+                        media_root = settings.MEDIA_ROOT
+                        if os.path.exists(media_root) and not os.listdir(media_root):
+                            shutil.rmtree(media_root)
+                    resume.delete()
+                    messages.success(request, "Selected resume deleted.")
+                except ResumeFile.DoesNotExist:
+                    messages.error(request, "Resume not found.")
+                except Exception as e:
+                    messages.error(request, f"Error deleting resume: {e}")
+            else:
+                messages.error(request, "No resume selected for deletion.")
+
         return redirect('profiles:resume')
     
 class DashboardView(SessionRequiredMixin, View):
