@@ -38,14 +38,3 @@ def get_user_permissions(user_id):
                                   .values_list('permission__permission_name', flat=True)
     return set(perms)
 
-
-    
-
-def get_user_permissions(user_id):
-
-    role_ids = UsersRole.objects.filter(user_id=user_id).values_list('role_id', flat=True)
-    print(role_ids)
-    perms = RolePermission.objects.filter(role_id__in=role_ids)\
-                                  .select_related('permission')\
-                                  .values_list('permission__permission_name', flat=True)
-    return set(perms)
