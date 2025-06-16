@@ -94,8 +94,9 @@ class ManageResumesView(SessionRequiredMixin,View):
             if sel_id:
                 try:
                     resume = ResumeFile.objects.get(pk=sel_id, UserID=user_id)
-                    # Delete from S3 if not debug and FilePath is an S3 URL
+                    # Delete only the file in S3 based on id and fileName.pdf, keep the resumes folder
                     if not settings.DEBUG and resume.FilePath and str(resume.FilePath).startswith("http"):
+                        import urllib.parse
                         s3 = boto3.client(
                             's3',
                             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -103,9 +104,12 @@ class ManageResumesView(SessionRequiredMixin,View):
                             region_name=settings.AWS_S3_REGION_NAME,
                         )
                         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                        # Extract S3 key from the URL
-                        s3_key = '/'.join(str(resume.FilePath).split('/', 3)[-1:])
-                        # Check if the object exists before deleting
+
+                        # Parse the S3 key from the URL
+                        parsed_url = urllib.parse.urlparse(str(resume.FilePath))
+                        # parsed_url.path: /resumes/1/NurzatilimaniBintiMuhamadAhwanResume.pdf
+                        s3_key = parsed_url.path.lstrip('/')  # Remove leading slash
+
                         try:
                             s3.head_object(Bucket=bucket_name, Key=s3_key)
                             s3.delete_object(Bucket=bucket_name, Key=s3_key)
@@ -115,13 +119,14 @@ class ManageResumesView(SessionRequiredMixin,View):
                                 pass
                             else:
                                 raise
-                    # Delete local file if exists
+
+                    # Optionally, delete local file if exists (for local debug)
                     elif resume.FilePath and hasattr(resume.FilePath, 'path') and os.path.exists(resume.FilePath.path):
                         os.remove(resume.FilePath.path)
-                        # Optionally remove media folder if empty
                         media_root = settings.MEDIA_ROOT
                         if os.path.exists(media_root) and not os.listdir(media_root):
                             shutil.rmtree(media_root)
+
                     resume.delete()
                     messages.success(request, "Selected resume deleted.")
                 except ResumeFile.DoesNotExist:
