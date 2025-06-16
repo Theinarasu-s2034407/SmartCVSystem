@@ -88,6 +88,7 @@ class ManageResumesView(SessionRequiredMixin,View):
             ResumeFile.objects.filter(pk=sel_id, UserID=user_id).update(IsSelected=True)
             messages.success(request, "Selected resume updated.")
         return redirect('profiles:resume')
+    
 class DashboardView(SessionRequiredMixin, View):
     """
     Shows the logged-in user’s info and roles.

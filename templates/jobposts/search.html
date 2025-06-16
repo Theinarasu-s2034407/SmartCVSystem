@@ -50,10 +50,8 @@ Search | {{ site_name }}{% endblock %} {% block content %}
         {% if job.Industry %}
         <strong>Industry:</strong> {{ job.Industry }}<br />
         {% endif %}
-        <strong>Experience Level:</strong> {{ job.get_ExperienceLevel_display
-        }}<br />
-        <strong>Education Required:</strong> {{ job.get_EducationLevel_display
-        }}
+        <strong>Experience Level:</strong> {{ job.get_ExperienceLevel_display }}<br />
+        <strong>Education Required:</strong> {{ job.get_EducationLevel_display }}
       </p>
 
       {# Description and Skills (Markdownified) #}

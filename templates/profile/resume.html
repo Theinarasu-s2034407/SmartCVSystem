@@ -77,7 +77,7 @@
                     />
                   </td>
                   <td class="align-middle">
-                    <a href="{{ resume.FilePath.url }}" target="_blank">
+                    <a href="{{resume.FilePath }}" target="_blank">
                        {{ resume.FilePath.name|filename }}
                     </a>
                   </td>
@@ -109,6 +109,14 @@
                 class="btn btn-primary"
               >
                 Save Selection
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="delete"
+                class="btn btn-warning"
+              >
+                Delete Selection
               </button>
             </div>
           </form>
