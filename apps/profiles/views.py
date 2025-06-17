@@ -212,7 +212,6 @@ class ManageResumesView(SessionRequiredMixin,View):
                     # Only proceed if the file is stored in S3
                     if resume.FilePath and str(resume.FilePath).startswith("http"):
                         parsed_url = urllib.parse.urlparse(str(resume.FilePath))
-                        print(parsed_url)
                         s3_key = parsed_url.path.lstrip('/')  # e.g. resumes/1/filename.pdf
                         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
                         aws_access_key = settings.AWS_ACCESS_KEY_ID
@@ -221,12 +220,15 @@ class ManageResumesView(SessionRequiredMixin,View):
                         resume_info = extract_resume_info_from_s3(
                             bucket_name, s3_key, aws_access_key, aws_secret_key, region
                         )
-                        # Store the extracted data in ParsedData model
-                        ParsedData.objects.create(
-                            ResumeID=resume,
-                            Data=resume_info
-                        )
-                        messages.success(request, "Resume extracted and data saved successfully.")
+                        # Store the extracted data in ParsedData model only if not exists
+                        if not ParsedData.objects.filter(ResumeID=resume).exists():
+                            ParsedData.objects.create(
+                                ResumeID=resume,
+                                Data=resume_info
+                            )
+                            messages.success(request, "Resume extracted and data saved successfully.")
+                        else:
+                            messages.info(request, "Parsed data for this resume already exists.")
                     else:
                         messages.error(request, "Resume file is not available in S3 for extraction.")
                 except ResumeFile.DoesNotExist:
