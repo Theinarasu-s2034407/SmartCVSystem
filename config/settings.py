@@ -65,9 +65,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    
     'django.middleware.security.SecurityMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,7 +75,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',  
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -132,14 +129,13 @@ DATABASES = {
     }
 }
 
-
-# if not DEBUG:
-#     INSTALLED_APPS += ["storages"]
-#     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-#     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
-#     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-#     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-#     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+if not DEBUG:
+    INSTALLED_APPS += ["storages"]
+    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
+    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 
 # Password validation
