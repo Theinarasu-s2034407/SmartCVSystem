@@ -24,10 +24,9 @@ services:
         "/wait-for-it.sh",
         "smartcv.cwt6ecysmeyl.us-east-1.rds.amazonaws.com:3306",
         "--",
-        "python",
-        "manage.py",
-        "runserver",
-        "0.0.0.0:8000",
+        "sh",
+        "-c",
+        "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
       ]
     volumes:
       - .:/app
