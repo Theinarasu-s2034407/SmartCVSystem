@@ -231,6 +231,8 @@ class ManageResumesView(SessionRequiredMixin,View):
             if sel_id:
                 try:
                     resume = ResumeFile.objects.get(pk=sel_id, UserID=user_id)
+                     # Delete associated parsed data if exists
+                    ParsedData.objects.filter(ResumeID=resume).delete()
                     # Delete only the file in S3 based on id and fileName.pdf, keep the resumes folder
                     if not settings.DEBUG and resume.FilePath and str(resume.FilePath).startswith("http"):
                         s3 = boto3.client(
