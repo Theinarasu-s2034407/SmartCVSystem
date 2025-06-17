@@ -6,6 +6,8 @@ import urllib.parse
 import io
 import re
 import logging
+import re
+import datetime
 from botocore.exceptions import ClientError
 from django.shortcuts           import render, redirect
 from django.views import View
@@ -32,54 +34,120 @@ from django.conf import settings
 
 
 def extract_resume_info_from_s3(bucket_name, key, aws_access_key=None, aws_secret_key=None, region='us-east-1'):
-        fallback_resume_data = {
-            "skills": "",
-            "education_level": "Unknown",
-            "experience_level": "unknown"
-        }
-        try:
-            session = boto3.Session(
-                aws_access_key_id=aws_access_key,
-                aws_secret_access_key=aws_secret_key,
-                region_name=region
-            )
-            s3 = session.client('s3')
-            s3_object = s3.get_object(Bucket=bucket_name, Key=key)
-            file_stream = io.BytesIO(s3_object['Body'].read())
-        except Exception as e:
-            logging.error(f"[S3 Read Error] {e}")
-            return fallback_resume_data
+    fallback_resume_data = {
+        "skills": "",
+        "education_level": "Unknown",
+        "experience_level": "unknown"
+    }
+    try:
+        session = boto3.Session(
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            region_name=region
+        )
+        s3 = session.client('s3')
+        s3_object = s3.get_object(Bucket=bucket_name, Key=key)
+        file_stream = io.BytesIO(s3_object['Body'].read())
+    except Exception as e:
+        logging.error(f"[S3 Read Error] {e}")
+        return fallback_resume_data
 
-        try:
-            doc = fitz.open(stream=file_stream, filetype="pdf")
-            full_text = "\n".join(page.get_text() for page in doc).lower()
-        except Exception as e:
-            logging.error(f"[PDF Parse Error] {e}")
-            return fallback_resume_data
+    try:
+        doc = fitz.open(stream=file_stream, filetype="pdf")
+        full_text = "\n".join(page.get_text() for page in doc)
+        full_text_lower = full_text.lower()
+    except Exception as e:
+        logging.error(f"[PDF Parse Error] {e}")
+        return fallback_resume_data
 
-        resume_data = {
-            "skills": "",
-            "education_level": "Unknown",
-            "experience_level": "unknown"
-        }
+    resume_data = {
+        "skills": "",
+        "education_level": "Unknown",
+        "experience_level": "unknown"
+    }
 
-        skill_keywords = [
-            'javascript', 'python', 'java', 'php', 'react', 'vue', 'html', 'css',
-            'node', 'typescript', 'mongodb', 'mysql', 'aws', 'firebase', 'laravel',
-            'django', 'flask', 'fastapi', 'bootstrap', 'git', 'docker', 'redis'
-        ]
-        found_skills = {kw.capitalize() for kw in skill_keywords if re.search(rf'\b{kw}\b', full_text)}
-        resume_data["skills"] = ", ".join(sorted(found_skills))
+    # --- Skill Extraction ---
+    skill_keywords = [
+        'javascript', 'python', 'java', 'php', 'react', 'vue', 'html', 'css',
+        'node', 'typescript', 'mongodb', 'mysql', 'aws', 'firebase', 'laravel',
+        'django', 'flask', 'fastapi', 'bootstrap', 'git', 'docker', 'redis'
+    ]
+    found_skills = {kw.capitalize() for kw in skill_keywords if re.search(rf'\b{kw}\b', full_text_lower)}
+    resume_data["skills"] = ", ".join(sorted(found_skills))
 
-        if "bachelor" in full_text:
-            resume_data["education_level"] = "Bachelor's Degree"
-        elif "master" in full_text:
-            resume_data["education_level"] = "Master's Degree"
-        elif "diploma" in full_text:
-            resume_data["education_level"] = "Diploma"
-        elif "phd" in full_text or "doctor of philosophy" in full_text:
-            resume_data["education_level"] = "PhD"
+    # --- Education Extraction ---
+    if "bachelor" in full_text_lower:
+        resume_data["education_level"] = "Bachelor's Degree"
+    elif "master" in full_text_lower:
+        resume_data["education_level"] = "Master's Degree"
+    elif "diploma" in full_text_lower:
+        resume_data["education_level"] = "Diploma"
+    elif "phd" in full_text_lower or "doctor of philosophy" in full_text_lower:
+        resume_data["education_level"] = "PhD"
 
+    # --- Experience Extraction ---
+    # Patterns for date ranges: MM/YYYY - MM/YYYY, MM/YYYY - Present, Month YYYY - Month YYYY, etc.
+    date_patterns = [
+        r'(\d{2}/\d{4})\s*[-–]\s*(\d{2}/\d{4}|present)',
+        r'([A-Za-z]{3,9}\s+\d{4})\s*[-–]\s*([A-Za-z]{3,9}\s+\d{4}|present)',
+        r'(\d{2}-\d{4})\s*[-–]\s*(\d{2}-\d{4}|present)'
+    ]
+    matches = []
+    for pattern in date_patterns:
+        matches += re.findall(pattern, full_text, re.IGNORECASE)
+
+    # Helper to parse date strings
+    def parse_date(date_str):
+        date_str = date_str.strip().replace('-', '/')
+        if date_str.lower() == 'present':
+            return datetime.datetime.now()
+        for fmt in ("%m/%Y", "%b %Y", "%B %Y", "%m-%Y"):
+            try:
+                return datetime.datetime.strptime(date_str, fmt)
+            except ValueError:
+                continue
+        return None
+
+    # Collect all periods as (start, end)
+    periods = []
+    for match in matches:
+        start_str, end_str = match
+        start = parse_date(start_str)
+        end = parse_date(end_str)
+        if start and end and end >= start:
+            periods.append((start, end))
+
+    # Merge overlapping/adjacent periods
+    periods.sort()
+    merged = []
+    for period in periods:
+        if not merged:
+            merged.append(period)
+        else:
+            last_start, last_end = merged[-1]
+            curr_start, curr_end = period
+            if curr_start <= last_end + datetime.timedelta(days=31):  # allow 1 month gap
+                merged[-1] = (last_start, max(last_end, curr_end))
+            else:
+                merged.append(period)
+
+    # Calculate total experience in years
+    total_months = 0
+    for start, end in merged:
+        months = (end.year - start.year) * 12 + (end.month - start.month)
+        if months > 0:
+            total_months += months
+    total_years = total_months / 12
+
+    # Assign experience level
+    if total_years >= 6:
+        resume_data["experience_level"] = "senior"
+    elif total_years >= 3:
+        resume_data["experience_level"] = "mid"
+    elif total_years > 0:
+        resume_data["experience_level"] = "junior"
+    else:
+        # Fallback to keyword-based logic if no date ranges found
         experience_patterns = [
             (r"([6-9]|[1-9][0-9]+)\s*(\+)?\s*(years|yrs)", "senior"),
             (r"(3|4)\s*(years|yrs)", "mid"),
@@ -87,11 +155,11 @@ def extract_resume_info_from_s3(bucket_name, key, aws_access_key=None, aws_secre
             (r"\bintern(ship)?\b", "junior")
         ]
         for pattern, level in experience_patterns:
-            if re.search(pattern, full_text):
+            if re.search(pattern, full_text_lower):
                 resume_data["experience_level"] = level
                 break
 
-        return resume_data
+    return resume_data
 
 class DetailView(View):
     def get(self, request):
