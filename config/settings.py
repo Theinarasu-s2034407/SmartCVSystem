@@ -133,7 +133,6 @@ DATABASES = {
 }
 
 
-
 # if not DEBUG:
 #     INSTALLED_APPS += ["storages"]
 #     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
