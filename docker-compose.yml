@@ -22,7 +22,7 @@ services:
     command:
       [
         "/wait-for-it.sh",
-        "smartcv.cwt6ecysmeyl.us-east-1.rds.amazonaws.com:3306",
+        "smartcv.crww0q6emm5q.ap-southeast-1.rds.amazonaws.com:3306",
         "--",
         "sh",
         "-c",
