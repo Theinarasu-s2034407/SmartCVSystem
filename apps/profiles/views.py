@@ -201,6 +201,14 @@ class DashboardView(SessionRequiredMixin, View):
             selected_resume = resumes_qs.filter(IsSelected=True).first()
             parsed_data = get_latest_parsed_data(selected_resume) if selected_resume else None
             context['recommended_jobs'] = get_recommended_jobs(parsed_data)
+              # Add recent applications (latest 5)
+            recent_apps = (
+                UserJob.objects
+                .filter(User_id=user_id, IsApplied=True)
+                .order_by('-CreatedAt')
+                .values('JobPost__pk', 'JobPost__Title', 'CreatedAt')[:5]
+            )
+            context['recent_apps'] = recent_apps
 
         if 'company hr' in roles or 'recruiter' in roles:
             context.update({
