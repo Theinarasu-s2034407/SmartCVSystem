@@ -65,7 +65,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    
     'django.middleware.security.SecurityMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,6 +130,7 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', '3306'),
     }
 }
+
 
 if not DEBUG:
     INSTALLED_APPS += ["storages"]

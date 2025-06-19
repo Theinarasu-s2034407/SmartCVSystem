@@ -40,6 +40,7 @@
         </div>
         <div class="text-end">
           <i class="fa fa-calendar-times fa-2x text-danger"></i>
+
         </div>
       </div>
       <div class="card-footer bg-transparent">
@@ -169,34 +170,25 @@
     </ul>
   </div>
 
-<div class="col-lg-6">
+  <div class="col-lg-6">
     <h5>Recommended Jobs</h5>
-    <div class="row row-cols-1">
-      {% if recommended_jobs %}
-        {% for job in recommended_jobs %}
-        <div class="col">
-          <div class="card h-100">
-            <div class="card-body">
-              <h6>
-                <a href="{% url 'jobposts:detail' job.pk %}"> {{ job.Title }} </a>
-              </h6>
-              <p class="mb-0">
-                <small class="text-muted">{{ job.Location }}</small>
-              </p>
-            </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      {% for job in recommended_jobs %}
+      <div class="col">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6>
+              <a href="{% url 'jobposts:detail' job.pk %}"> {{ job.Title }} </a>
+            </h6>
+            <p class="mb-0">
+              <small class="text-muted">{{ job.Location }}</small>
+            </p>
           </div>
         </div>
-        {% endfor %}
-      {% else %}
-        <div class="col">
-          <div class="card h-100">
-            <div class="card-body text-center text-muted">
-              No recommended jobs available
-            </div>
-          </div>
-        </div>
-      {% endif %}
+      </div>
+      {% endfor %}
     </div>
+  </div>
 </div>
 
 <!-- 3) Upcoming Interviews -->

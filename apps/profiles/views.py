@@ -186,42 +186,43 @@ class ManageResumesView(SessionRequiredMixin, View):
 class DashboardView(SessionRequiredMixin, View):
     def get(self, request):
         user_id = request.session['user_id']
-        user = User.objects.get(users_id=user_id)
-        roles = [ur.role.role_name.lower() for ur in UsersRole.objects.filter(user_id=user_id).select_related('role')]
-        context = {'user': user, 'roles': roles}
 
+        user    = User.objects.get(users_id=user_id)
+
+        # Fetch all Roles assigned to this user
+        roles = [ur.role.role_name.lower() for ur in UsersRole.objects.filter(user_id=user_id).select_related('role')]
+
+        context = {
+            'user':  user,
+            'roles': roles,
+        }
+        print(roles)
         if 'candidate' in roles:
-            resumes_qs = ResumeFile.objects.filter(UserID_id=user_id)
+            # Candidate metrics
+            resumes_qs     = ResumeFile.objects.filter(UserID_id=user_id)
             context.update({
-                'resume_count': resumes_qs.count(),
-                'has_active': resumes_qs.filter(IsSelected=True).exists(),
+                'resume_count':  resumes_qs.count(),
+                'has_active':    resumes_qs.filter(IsSelected=True).exists(),
                 'applied_count': UserJob.objects.filter(User_id=user_id, IsApplied=True).count(),
-                'saved_count': UserJob.objects.filter(User_id=user_id, IsSaved=True).count(),
+                'saved_count':   UserJob.objects.filter(User_id=user_id, IsSaved=True).count(),
             })
-            selected_resume = resumes_qs.filter(IsSelected=True).first()
-            parsed_data = get_latest_parsed_data(selected_resume) if selected_resume else None
-            context['recommended_jobs'] = get_recommended_jobs(parsed_data)
-              # Add recent applications (latest 5)
-            recent_apps = (
-                UserJob.objects
-                .filter(User_id=user_id, IsApplied=True)
-                .order_by('-CreatedAt')
-                .values('JobPost__pk', 'JobPost__Title', 'CreatedAt')[:5]
-            )
-            context['recent_apps'] = recent_apps
 
         if 'company hr' in roles or 'recruiter' in roles:
+            # Company HR / Recruiter metrics
             context.update({
-                'total_jobs': JobPost.objects.filter(Recruiter_id=user_id).count(),
+                'total_jobs':   JobPost.objects.filter(Recruiter_id=user_id).count(),
+
                 'expired_jobs': JobPost.objects.filter(
                     Recruiter_id=user_id,
                     ApplicationDeadline__lt=timezone.now()
                 ).count(),
-                'total_apps': UserJob.objects.filter(
+
+
                     JobPost__Recruiter_id=user_id,
                     IsApplied=True
                 ).count(),
             })
+
         return render(request, 'dashboard.html', context)
 
 class ChangePasswordView(SessionRequiredMixin, View):
