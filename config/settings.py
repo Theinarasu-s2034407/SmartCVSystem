@@ -77,7 +77,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',  
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -122,28 +121,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "smartcv",
-        "USER": "root",
-        "PASSWORD": "Rasu1991",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME', 'smartcv'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'Rasu1991'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
     }
 }
 
 
-# if not DEBUG:
-#     INSTALLED_APPS += ["storages"]
-#     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-#     AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
-#     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-#     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-#     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+if not DEBUG:
+    INSTALLED_APPS += ["storages"]
+    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
+    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 
 # Password validation
@@ -185,6 +180,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE ='whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

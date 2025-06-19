@@ -25,6 +25,7 @@ class ResumeForm(forms.ModelForm):
         widgets = {
             'FilePath': forms.FileInput(attrs={
                 'class': 'form-control',
+                'accept': 'application/pdf',  # Restrict to PDF files
             }),
         }
 
@@ -32,8 +33,8 @@ class ResumeForm(forms.ModelForm):
         file = self.cleaned_data.get('FilePath')
         if file:
             # Optionally enforce file type/size here
-            if not file.name.lower().endswith(('.pdf', '.doc', '.docx')):
-                raise forms.ValidationError('Only PDF or Word documents are allowed.')
+            if not file.name.lower().endswith(('.pdf')):
+                raise forms.ValidationError('Only PDF document is allowed.')
             if file.size > 5 * 1024 * 1024:
                 raise forms.ValidationError('File size must be under 5 MB.')
         return file

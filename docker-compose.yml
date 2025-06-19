@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    env_file:
+      - .env
+
+  web:
+    build: .
+    restart: always
+    command:
+      [
+        "/wait-for-it.sh",
+        "smartcv.crww0q6emm5q.ap-southeast-1.rds.amazonaws.com:3306",
+        "--",
+        "sh",
+        "-c",
+        "python manage.py migrate --noinput && python manage.py seed_roles_permissions && python manage.py runserver 0.0.0.0:8000"
+      ]
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+volumes:
+  db_data: {}
+  static_volume: {}
