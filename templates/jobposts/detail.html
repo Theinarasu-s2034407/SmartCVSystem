@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load markdownify %}
+{% block title %}{{ job.Title }} | {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h2>{{ job.Title }}</h2>
+      <small class="text-muted">Posted on {{ job.CreatedAt|date:"Y-m-d" }}</small>
+    </div>
+    <div class="card-body">
+
+      {# Meta info #}
+      <p>
+        <strong>Location:</strong> {{ job.Location }}<br>
+        <strong>Type:</strong> {{ job.get_EmploymentType_display }}<br>
+        <strong>Remote:</strong> {{ job.RemoteOption }}<br>
+        {% if job.MinSalary or job.MaxSalary %}
+        <strong>Salary:</strong>
+       RM {{ job.MinSalary|default:"—" }} – {{ job.MaxSalary|default:"—" }}
+        <small>per annum</small><br />
+        {% endif %}
+        {% if job.ApplicationDeadline %}
+          <strong>Deadline:</strong> {{ job.ApplicationDeadline|date:"Y-m-d" }}<br>
+        {% endif %}
+      </p>
+
+      {# Description #}
+      <div class="mb-4 markdown-body">
+        <h5>Description</h5>
+        {{ job.Description|markdownify|safe }}
+      </div>
+
+      {# Skills #}
+      <div class="mb-4 markdown-body">
+        <h5>Required Skills</h5>
+        {{ job.RequiredSkills|markdownify|safe }}
+      </div>
+
+      {# Benefits #}
+      {% if job.Benefits %}
+      <div class="mb-4 markdown-body">
+        <h5>Benefits</h5>
+        {{ job.Benefits|markdownify|safe }}
+      </div>
+      {% endif %}
+
+      {# Apply / Save forms #}
+      <div class="d-flex gap-2 mb-3">
+        <form method="post">
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="action" value="apply"
+            class="btn btn-success btn-lg"
+          >Apply Now</button>
+        </form>
+        <form method="post">
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="action" value="save"
+            class="btn btn-outline-warning btn-lg"
+          >Save for Later</button>
+        </form>
+      </div>
+
+      {# Link back #}
+      <a href="{% url 'jobposts:search' %}?q={{ request.GET.q|urlencode }}" class="btn btn-link">
+        ← Back to Search
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

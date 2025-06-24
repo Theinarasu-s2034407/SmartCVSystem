@@ -1,0 +1,230 @@
+{# apps/profiles/templates/profiles/resume.html #} {% extends "base.html" %} 
+{%load widget_tweaks file_extras  %} 
+{% block title %}Manage Resumes | {{ site_name }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid mb-4">
+      <div class="alert alert-info">
+  <h4>Instructions:</h4>
+  <p>
+    Upload your resume in <strong>PDF</strong> format. Select the uploaded resume before you apply the job.
+  </p>
+  <p>Click <strong>Extract Selection</strong> to extract your <strong>skills</strong>, <strong>education</strong>, and <strong>experience</strong>.
+    Our system will use this information to find and recommend jobs that best match your resume.</p>
+  <ul>
+    <li><strong>Skills:</strong> Extracted from your resume and matched with job requirements.</li>
+    <li><strong>Education:</strong> Compared with the education required for each job.</li>
+    <li><strong>Experience:</strong> Matched against the experience level needed for available positions.</li>
+  </ul>
+  <p>
+    <em>Tip: Make sure your resume is up-to-date and clearly lists your qualifications for the best matching results.</em>
+  </p>
+</div>
+  <div class="row">
+    {# — New Upload Form — #}
+    <div class="col-md-12">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Upload New Resume</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %} 
+            {{ resume_form.non_field_errors }}
+
+            <div class="mb-3">
+              <label
+                for="{{ resume_form.FilePath.id_for_label }}"
+                class="form-label"
+              >
+                Select file
+              </label>
+              {{ resume_form.FilePath|add_class:"form-control" }} 
+                {% if resume_form.FilePath.errors %}
+                  <div class="text-danger mt-1">
+                    {{ resume_form.FilePath.errors|join:", " }}
+                  </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid">
+              <button
+                type="submit"
+                name="action"
+                value="upload"
+                class="btn btn-success"
+              >
+                Upload
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {# — Resume History Table — #}
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">Uploaded Resumes</h5>
+        </div>
+        <div class="card-body p-0">
+          <form method="post" id="resume-form">
+            <input type="hidden" name="action" id="action-hidden">
+            {% csrf_token %}
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Use</th>
+                  <th scope="col">File</th>
+                  <th scope="col">Status</th>
+                  <th>Selected?</th>
+                  <th scope="col">Uploaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for resume in resumes %}
+                <tr>
+                  <td class="align-middle">
+                    <input
+                      type="radio"
+                      name="selected_id"
+                      class="resume-radio"
+                      value="{{ resume.pk }}"
+                      {% if resume.IsSelected %} checked{% endif %}
+                    />
+                  </td>
+                  <td class="align-middle">
+                    <a href="{{resume.FilePath }}" target="_blank">
+                       {{ resume.FilePath.name|filename }}
+                    </a>
+                  </td>
+                  <td class="align-middle">{{ resume.Status }}</td>
+                  <td class="align-middle text-center">
+                    {% if resume.IsSelected %}
+                      <i class="fa-solid fa-check-circle text-success"></i>
+                    {% endif %}
+                  </td>
+                  <td class="align-middle">
+                    {{ resume.UploadedAt|date:"d/m/Y H:i" }}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4">
+                    No resumes uploaded yet.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <div class="card-footer text-end">
+              <button
+                type="submit"
+                name="action"
+                value="select"
+                class="btn btn-primary"
+                id="save-selection-btn"
+                disabled
+              >
+                Save Selection
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="delete"
+                class="btn btn-danger"
+                id="delete-selection-btn"
+                disabled
+                onclick="return confirm('Are you sure you want to delete the selected resume? This action cannot be undone.');"
+              >
+                Delete Selection
+              </button>
+              <button
+              type="button"
+              class="btn btn-secondary"
+             id="clear-selection-btn"
+            disabled
+            >
+              Clear Selection
+              </button>
+           <button
+               type="submit"
+                name="action"
+                value="extract"
+              class="btn btn-info"
+             id="extract-selection-btn"
+            disabled
+             onclick="return confirm('Are you sure want to extract the selected resume? This action cannot be undone.');"
+            >
+              Extract Selection
+              </button>
+            </div>
+
+            </div>
+          </form>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('.resume-radio');
+    const saveBtn = document.getElementById('save-selection-btn');
+    const deleteBtn = document.getElementById('delete-selection-btn');
+    const clearBtn = document.getElementById('clear-selection-btn');
+    const extractBtn = document.getElementById('extract-selection-btn');
+    const form = document.getElementById('resume-form');
+
+    function updateButtons() {
+      if (document.querySelector('.resume-radio:checked')) {
+        if (saveBtn) saveBtn.disabled = false;
+        if (deleteBtn) deleteBtn.disabled = false;
+        if (clearBtn) clearBtn.disabled = false;
+        if (extractBtn) extractBtn.disabled = false;
+      } else {
+        if (saveBtn) saveBtn.disabled = true;
+        if (deleteBtn) deleteBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+        if (extractBtn) extractBtn.disabled = true;
+      }
+    }
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', updateButtons);
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        radios.forEach(radio => radio.checked = false);
+        updateButtons();
+      });
+    }
+
+    if (form) {
+   form.addEventListener('submit', function(e) {
+  if (document.activeElement === saveBtn) {
+    document.getElementById('action-hidden').value = 'select';
+    saveBtn.disabled = true;
+    deleteBtn.disabled = true;
+  } else if (document.activeElement === deleteBtn) {
+    document.getElementById('action-hidden').value = 'delete';
+    saveBtn.disabled = true;
+    deleteBtn.disabled = true;
+  } else if (document.activeElement === extractBtn) {
+    document.getElementById('action-hidden').value = 'extract';
+    saveBtn.disabled = true;
+    deleteBtn.disabled = true;
+    extractBtn.disabled = true;
+  } else {
+    document.getElementById('action-hidden').value = '';
+  }
+});
+    }
+
+    updateButtons();
+  });
+</script>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
